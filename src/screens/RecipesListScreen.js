@@ -29,7 +29,7 @@ export default function RecipesListScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Recetas de "{category}"
+      <Text style={styles.header}>"{category}"
       </Text>
       <FlatList
         data={recipes}
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   header: {
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: "bold",
     marginBottom: 10,
     textAlign: "center",
@@ -59,18 +59,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#303030",
     borderRadius: 10,
-    padding: 10,
+    padding: 5,
     elevation: 2,
   },
   image: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     borderRadius: 10,
     marginRight: 10,
   },
   title: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 20,
+    fontWeight: "bold",
     flexShrink: 1,
     color: "#ffffff",
   },

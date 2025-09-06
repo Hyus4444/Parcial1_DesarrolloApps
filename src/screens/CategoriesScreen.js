@@ -62,13 +62,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   image: {
-    width: 100,
-    height: 100,
-    borderRadius: 20,
+    width: 120,
+    height: 120,
+    borderRadius: 40,
   },
   title: {
     marginTop: 5,
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "600",
     color: "#ffffff",
   },
