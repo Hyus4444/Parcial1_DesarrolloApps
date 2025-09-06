@@ -1,5 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useEffect, useState, useLayoutEffect } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Button,
+} from "react-native";
 import axios from "axios";
 
 export default function CategoriesScreen({ navigation }) {
@@ -15,11 +23,24 @@ export default function CategoriesScreen({ navigation }) {
         console.error("Error al cargar categorías:", error);
       });
   }, []);
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Button
+          color="#063a52ff"
+          title="Favoritos"
+          onPress={() => navigation.navigate("Favorites")}
+        />
+      ),
+    });
+  }, [navigation]);
 
   const renderCategory = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate("ListaRecetas", { category: item.strCategory })}
+      onPress={() =>
+        navigation.navigate("ListaRecetas", { category: item.strCategory })
+      }
     >
       <Image source={{ uri: item.strCategoryThumb }} style={styles.image} />
       <Text style={styles.title}>{item.strCategory}</Text>
@@ -71,5 +92,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "600",
     color: "#ffffff",
+  },
+  Button: {
+    width: "20%",
+    height: 50,
+    color: "#063a52ff",
   },
 });
