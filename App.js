@@ -12,9 +12,9 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Categorias">
-        <Stack.Screen name="Categorias" component={CategoriesScreen} options={{ title: "Categorías" }} />
-        <Stack.Screen name="ListaRecetas" component={RecipesListScreen} options={{ title: "Recetas" }} />
-        <Stack.Screen name="DetallesRecetas" component={RecipeDetailScreen} options={{ title: "Detalle de Receta" }} />
+        <Stack.Screen name="Categorias" component={CategoriesScreen} options={{ title: "Categorias", headerStyle: { backgroundColor: "#303030"}, headerTintColor: "#ffffff"}} />
+        <Stack.Screen name="ListaRecetas" component={RecipesListScreen} options={{ title: "Recetas", headerStyle: { backgroundColor: "#303030"}, headerTintColor: "#ffffff" }} />
+        <Stack.Screen name="DetallesRecetas" component={RecipeDetailScreen} options={{ title: "Detalle de Receta", headerStyle: { backgroundColor: "#303030"}, headerTintColor: "#ffffff" }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

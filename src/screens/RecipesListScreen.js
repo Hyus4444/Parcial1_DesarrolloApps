@@ -20,7 +20,7 @@ export default function RecipesListScreen({ route, navigation }) {
   const renderRecipe = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate("RecipeDetail", { idMeal: item.idMeal })}
+      onPress={() => navigation.navigate("DetallesRecetas", { idMeal: item.idMeal })}
     >
       <Image source={{ uri: item.strMealThumb }} style={styles.image} />
       <Text style={styles.title}>{item.strMeal}</Text>
@@ -29,7 +29,8 @@ export default function RecipesListScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Recetas de {category}</Text>
+      <Text style={styles.header}>Recetas de "{category}"
+      </Text>
       <FlatList
         data={recipes}
         keyExtractor={(item) => item.idMeal}
@@ -42,7 +43,7 @@ export default function RecipesListScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#121212",
     padding: 10,
   },
   header: {
@@ -50,12 +51,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 10,
     textAlign: "center",
+    color: "#ffffff",
   },
   card: {
     flexDirection: "row",
     marginBottom: 10,
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#303030",
     borderRadius: 10,
     padding: 10,
     elevation: 2,
@@ -70,5 +72,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     flexShrink: 1,
+    color: "#ffffff",
   },
 });
