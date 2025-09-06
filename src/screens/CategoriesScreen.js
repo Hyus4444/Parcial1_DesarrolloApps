@@ -1,15 +1,8 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from "react-native";
 import axios from "axios";
 
-export default function pantallaCategorias({ navigation }) {
+export default function CategoriesScreen({ navigation }) {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
@@ -27,9 +20,7 @@ export default function pantallaCategorias({ navigation }) {
   const renderCategory = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() =>
-        navigation.navigate("RecipesList", { category: item.strCategory })
-      }
+      onPress={() => navigation.navigate("RecipesList", { category: item.strCategory })}
     >
       <Image source={{ uri: item.strCategoryThumb }} style={styles.image} />
       <Text style={styles.title}>{item.strCategory}</Text>
