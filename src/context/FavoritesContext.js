@@ -10,7 +10,9 @@ export const FavoritesProvider = ({ children }) => {
     const loadFavorites = async () => {
       try {
         const stored = await AsyncStorage.getItem("@favorites");
-        if (stored) setFavorites(JSON.parse(stored));
+        if (stored) {
+          setFavorites(JSON.parse(stored));
+        }
       } catch (e) {
         console.error("Error cargando favoritos:", e);
       }
