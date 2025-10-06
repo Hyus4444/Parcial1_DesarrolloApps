@@ -1,12 +1,6 @@
-// src/services/realtimeService.js
 import { db } from "../firebase/config";
 import { ref, set, get, onValue, remove, update } from "firebase/database";
 
-/**
- * Rutas públicas (sin auth) para pruebas:
- * - /public_app/favorites/{idMeal}
- * - /public_app/cart/{ingredientId}
- */
 
 const basePath = "public_app";
 
@@ -52,11 +46,9 @@ export const listenFavorites = (onUpdate, onError) => {
       console.warn("listenFavorites error:", err);
     }
   );
-  return unsub; // puedes llamar unsub() para cancelar
+  return unsub;
 };
-
 /* ----- Carrito ----- */
-
 export const addOrUpdateCartItem = async (ingredient) => {
   if (!ingredient || !ingredient.name) {
     throw new Error("ingredient.name required");

@@ -18,26 +18,30 @@ export const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
   const [cart, setCart] = useState([]);
 
-  // Cargar cache local rápido
   useEffect(() => {
     (async () => {
       try {
         const f = await AsyncStorage.getItem("@favorites_public");
         const c = await AsyncStorage.getItem("@cart_public");
-        if (f) setFavorites(JSON.parse(f));
-        if (c) setCart(JSON.parse(c));
+        if (f) {
+          setFavorites(JSON.parse(f));
+        }
+        if (c) {
+          setCart(JSON.parse(c));
+        }
       } catch (e) {
         console.warn("Error cargando cache local:", e);
       }
     })();
   }, []);
 
-  // Suscribirse a cambios remotos (public branch)
   useEffect(() => {
     const unsubFav = listenFavorites(
       (arr) => {
         setFavorites(arr);
-        AsyncStorage.setItem("@favorites_public", JSON.stringify(arr)).catch(() => {});
+        AsyncStorage.setItem("@favorites_public", JSON.stringify(arr)).catch(
+          () => {}
+        );
       },
       (err) => console.warn("listenFavorites err:", err)
     );
@@ -45,14 +49,20 @@ export const FavoritesProvider = ({ children }) => {
     const unsubCart = listenCart(
       (arr) => {
         setCart(arr);
-        AsyncStorage.setItem("@cart_public", JSON.stringify(arr)).catch(() => {});
+        AsyncStorage.setItem("@cart_public", JSON.stringify(arr)).catch(
+          () => {}
+        );
       },
       (err) => console.warn("listenCart err:", err)
     );
 
     return () => {
-      if (typeof unsubFav === "function") unsubFav();
-      if (typeof unsubCart === "function") unsubCart();
+      if (typeof unsubFav === "function") {
+        unsubFav();
+      }
+      if (typeof unsubCart === "function") {
+        unsubCart();
+      }
     };
   }, []);
 
@@ -65,7 +75,7 @@ export const FavoritesProvider = ({ children }) => {
       } else {
         await setFavorite(recipe);
       }
-      // el listener actualiza el estado remoto → no tenemos que setear local manualmente
+      // el listener actualiza el estado remoto
     } catch (e) {
       console.error("toggleFavorite err:", e);
     }
@@ -88,7 +98,9 @@ export const FavoritesProvider = ({ children }) => {
   };
 
   return (
-    <FavoritesContext.Provider value={{ favorites, toggleFavorite, cart, addToCart, removeFromCart }}>
+    <FavoritesContext.Provider
+      value={{ favorites, toggleFavorite, cart, addToCart, removeFromCart }}
+    >
       {children}
     </FavoritesContext.Provider>
   );

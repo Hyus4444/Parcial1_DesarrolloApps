@@ -1,4 +1,3 @@
-import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { FavoritesProvider } from "./src/context/FavoritesContext";
@@ -6,7 +5,7 @@ import CategoriesScreen from "./src/screens/CategoriesScreen";
 import RecipesListScreen from "./src/screens/RecipesListScreen";
 import RecipeDetailScreen from "./src/screens/RecipeDetailScreen";
 import FavoritesScreen from "./src/screens/FavoritesScreen";
-import DebugDBScreen from "./src/screens/DebugDBScreen";
+import CartIngredientsScreen from "./src/screens/CartIngredientsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -15,12 +14,6 @@ export default function App() {
     <FavoritesProvider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Categorias">
-          <Stack.Screen
-            name="DebugDB"
-            component={DebugDBScreen}
-            options={{ title: "Debug DB" }}
-          />
-          
           <Stack.Screen
             name="Categorias"
             component={CategoriesScreen}
@@ -49,7 +42,7 @@ export default function App() {
             }}
           />
           <Stack.Screen
-            name="Favorites"
+            name="Favoritos"
             component={FavoritesScreen}
             options={{
               title: "Favoritos",
@@ -57,6 +50,15 @@ export default function App() {
               headerTintColor: "#ffffff",
             }}
           />
+          <Stack.Screen
+          name="CarritoIngredientes"
+          component={CartIngredientsScreen}
+          options={{
+              title: "Carrito de Ingredientes",
+              headerStyle: { backgroundColor: "#303030" },
+              headerTintColor: "#ffffff",
+            }}
+        />
         </Stack.Navigator>
       </NavigationContainer>
     </FavoritesProvider>
