@@ -6,6 +6,7 @@ import CategoriesScreen from "./src/screens/CategoriesScreen";
 import RecipesListScreen from "./src/screens/RecipesListScreen";
 import RecipeDetailScreen from "./src/screens/RecipeDetailScreen";
 import FavoritesScreen from "./src/screens/FavoritesScreen";
+import DebugDBScreen from "./src/screens/DebugDBScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -14,6 +15,12 @@ export default function App() {
     <FavoritesProvider>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Categorias">
+          <Stack.Screen
+            name="DebugDB"
+            component={DebugDBScreen}
+            options={{ title: "Debug DB" }}
+          />
+          
           <Stack.Screen
             name="Categorias"
             component={CategoriesScreen}

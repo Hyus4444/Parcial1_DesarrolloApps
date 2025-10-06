@@ -1,46 +1,94 @@
-import React, { createContext, useState, useEffect } from "react";
+// src/context/FavoritesContext.js
+import React, { createContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  listenFavorites,
+  getFavoritesOnce,
+  setFavorite,
+  removeFavorite,
+  listenCart,
+  getCartOnce,
+  addOrUpdateCartItem,
+  removeCartItem,
+} from "../services/realtimeService";
 
 export const FavoritesContext = createContext();
 
 export const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
+  const [cart, setCart] = useState([]);
 
+  // Cargar cache local rápido
   useEffect(() => {
-    const loadFavorites = async () => {
+    (async () => {
       try {
-        const stored = await AsyncStorage.getItem("@favorites");
-        if (stored) {
-          setFavorites(JSON.parse(stored));
-        }
+        const f = await AsyncStorage.getItem("@favorites_public");
+        const c = await AsyncStorage.getItem("@cart_public");
+        if (f) setFavorites(JSON.parse(f));
+        if (c) setCart(JSON.parse(c));
       } catch (e) {
-        console.error("Error cargando favoritos:", e);
+        console.warn("Error cargando cache local:", e);
       }
-    };
-    loadFavorites();
+    })();
   }, []);
 
-  const saveFavorites = async (newFavs) => {
+  // Suscribirse a cambios remotos (public branch)
+  useEffect(() => {
+    const unsubFav = listenFavorites(
+      (arr) => {
+        setFavorites(arr);
+        AsyncStorage.setItem("@favorites_public", JSON.stringify(arr)).catch(() => {});
+      },
+      (err) => console.warn("listenFavorites err:", err)
+    );
+
+    const unsubCart = listenCart(
+      (arr) => {
+        setCart(arr);
+        AsyncStorage.setItem("@cart_public", JSON.stringify(arr)).catch(() => {});
+      },
+      (err) => console.warn("listenCart err:", err)
+    );
+
+    return () => {
+      if (typeof unsubFav === "function") unsubFav();
+      if (typeof unsubCart === "function") unsubCart();
+    };
+  }, []);
+
+  // funciones expuestas
+  const toggleFavorite = async (recipe) => {
     try {
-      await AsyncStorage.setItem("@favorites", JSON.stringify(newFavs));
+      const exists = favorites.some((f) => f.idMeal === recipe.idMeal);
+      if (exists) {
+        await removeFavorite(recipe.idMeal);
+      } else {
+        await setFavorite(recipe);
+      }
+      // el listener actualiza el estado remoto → no tenemos que setear local manualmente
     } catch (e) {
-      console.error("Error guardando favoritos:", e);
+      console.error("toggleFavorite err:", e);
     }
   };
 
-  const toggleFavorite = (recipe) => {
-    let updated;
-    if (favorites.some((f) => f.idMeal === recipe.idMeal)) {
-      updated = favorites.filter((f) => f.idMeal !== recipe.idMeal);
-    } else {
-      updated = [...favorites, recipe];
+  const addToCart = async (ingredient) => {
+    try {
+      await addOrUpdateCartItem(ingredient);
+    } catch (e) {
+      console.error("addToCart err:", e);
     }
-    setFavorites(updated);
-    saveFavorites(updated);
+  };
+
+  const removeFromCart = async (ingredientName) => {
+    try {
+      await removeCartItem(ingredientName);
+    } catch (e) {
+      console.error("removeFromCart err:", e);
+    }
   };
 
   return (
-    <FavoritesContext.Provider value={{ favorites, toggleFavorite }}>
+    <FavoritesContext.Provider value={{ favorites, toggleFavorite, cart, addToCart, removeFromCart }}>
       {children}
     </FavoritesContext.Provider>
   );

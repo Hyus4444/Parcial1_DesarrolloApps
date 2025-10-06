@@ -1,62 +1,47 @@
 // src/services/realtimeService.js
+import { db } from "../firebase/config";
+import { ref, set, get, onValue, remove, update } from "firebase/database";
+
 /**
- * Servicio sencillo para:
- * - Favoritos: users/{uid}/favorites/{idMeal} -> objeto receta
- * - Carrito:   users/{uid}/cart/{ingredientId} -> { name, measure, quantity }
- *
- * Usa la API modular de Realtime: ref, set, update, onValue, remove, get
+ * Rutas públicas (sin auth) para pruebas:
+ * - /public_app/favorites/{idMeal}
+ * - /public_app/cart/{ingredientId}
  */
 
-import { db } from "../firebase/config";
-import {
-  ref,
-  set,
-  update,
-  onValue,
-  remove,
-  get,
-  child,
-  push,
-} from "firebase/database";
+const basePath = "public_app";
 
-// Helpers para paths
-const favoritesPath = (uid) => `users/${uid}/favorites`;
-const cartPath = (uid) => `users/${uid}/cart`;
+const favoritesPath = () => `${basePath}/favorites`;
+const cartPath = () => `${basePath}/cart`;
 
-/* ------------------ FAVORITOS ------------------ */
+/* ----- Favoritos ----- */
 
-// Añadir/actualizar favorito (idMeal como key)
-export const setFavorite = async (uid, recipe) => {
-  if (!uid) {
-    throw new Error("uid required");
+export const setFavorite = async (recipe) => {
+  if (!recipe || !recipe.idMeal) {
+    throw new Error("recipe.idMeal required");
   }
   const key = recipe.idMeal.toString();
-  const r = ref(db, `${favoritesPath(uid)}/${key}`);
-  // set creará/reescribirá el nodo
-  await set(r, recipe);
+  const nodeRef = ref(db, `${favoritesPath()}/${key}`);
+  await set(nodeRef, recipe);
 };
 
-// Eliminar favorito
-export const removeFavorite = async (uid, idMeal) => {
-  if (!uid) {
-    throw new Error("uid required");
-  }
-  const r = ref(db, `${favoritesPath(uid)}/${idMeal.toString()}`);
-  await remove(r);
+export const removeFavorite = async (idMeal) => {
+  const nodeRef = ref(db, `${favoritesPath()}/${idMeal.toString()}`);
+  await remove(nodeRef);
 };
 
-// Listener en tiempo real para favoritos
-// onUpdate: function(arrayOfRecipes)
-export const listenFavorites = (uid, onUpdate, onError) => {
-  if (!uid) {
-    return () => {};
-  }
-  const r = ref(db, favoritesPath(uid));
+export const getFavoritesOnce = async () => {
+  const nodeRef = ref(db, favoritesPath());
+  const snap = await get(nodeRef);
+  const val = snap.val() || {};
+  return Object.keys(val).map((k) => val[k]);
+};
+
+export const listenFavorites = (onUpdate, onError) => {
+  const nodeRef = ref(db, favoritesPath());
   const unsub = onValue(
-    r,
+    nodeRef,
     (snapshot) => {
       const val = snapshot.val() || {};
-      // convertir objeto a array
       const arr = Object.keys(val).map((k) => val[k]);
       onUpdate(arr);
     },
@@ -67,40 +52,30 @@ export const listenFavorites = (uid, onUpdate, onError) => {
       console.warn("listenFavorites error:", err);
     }
   );
-  // Nota: onValue devuelve una función? En web no; en RN devolvemos wrapper:
-  // No hay unsubscribe directo del onValue; en firebase modular, onValue retorna a callback que no retorna unsub.
-  // Para limpiar, se llama off() con la misma ref + callback; pero aquí asumimos el entorno típico.
-  // Para simplificar en RN usare el mismo onValue y retornar una función que llama off.
-  return () => {
-    // no-op: para compatibilidad, podrías usar off() desde la instancia global si lo necesitas
-    // pero en la mayoría de SDKs modernos onValue retorna la función para unsubscribir.
-  };
+  return unsub; // puedes llamar unsub() para cancelar
 };
 
-/* ------------------ CARRITO ------------------ */
+/* ----- Carrito ----- */
 
-// Añadir o sumar ingrediente en el carrito.
-// Comportamiento: si existe la key (encoded name) suma quantity; si no, crea.
-export const addOrUpdateCartItem = async (uid, ingredient) => {
-  if (!uid) {
-    throw new Error("uid required");
+export const addOrUpdateCartItem = async (ingredient) => {
+  if (!ingredient || !ingredient.name) {
+    throw new Error("ingredient.name required");
   }
-  // id seguro para key
   const id = encodeURIComponent((ingredient.name || "").trim().toLowerCase());
-  const r = ref(db, `${cartPath(uid)}/${id}`);
+  const nodeRef = ref(db, `${cartPath()}/${id}`);
 
-  // Leer el actual (get)
-  const snap = await get(r);
+  // obtener actual
+  const snap = await get(nodeRef);
   const existing = snap.exists() ? snap.val() : null;
   if (existing) {
-    const newQuantity = (existing.quantity || 0) + (ingredient.quantity || 0);
-    await update(r, {
+    const newQty = (existing.quantity || 0) + (ingredient.quantity || 0);
+    await update(nodeRef, {
       name: ingredient.name,
       measure: ingredient.measure || existing.measure || "",
-      quantity: newQuantity,
+      quantity: newQty,
     });
   } else {
-    await set(r, {
+    await set(nodeRef, {
       name: ingredient.name,
       measure: ingredient.measure || "",
       quantity: ingredient.quantity || 0,
@@ -108,14 +83,23 @@ export const addOrUpdateCartItem = async (uid, ingredient) => {
   }
 };
 
-// Escuchar carrito en tiempo real (onUpdate recibe array)
-export const listenCart = (uid, onUpdate, onError) => {
-  if (!uid) {
-    return () => {};
-  }
-  const r = ref(db, cartPath(uid));
+export const removeCartItem = async (ingredientName) => {
+  const id = encodeURIComponent((ingredientName || "").trim().toLowerCase());
+  const nodeRef = ref(db, `${cartPath()}/${id}`);
+  await remove(nodeRef);
+};
+
+export const getCartOnce = async () => {
+  const nodeRef = ref(db, cartPath());
+  const snap = await get(nodeRef);
+  const val = snap.val() || {};
+  return Object.keys(val).map((k) => val[k]);
+};
+
+export const listenCart = (onUpdate, onError) => {
+  const nodeRef = ref(db, cartPath());
   const unsub = onValue(
-    r,
+    nodeRef,
     (snapshot) => {
       const val = snapshot.val() || {};
       const arr = Object.keys(val).map((k) => val[k]);
@@ -128,38 +112,5 @@ export const listenCart = (uid, onUpdate, onError) => {
       console.warn("listenCart error:", err);
     }
   );
-  return () => {
-    // ver nota en listenFavorites
-  };
-};
-
-export const removeCartItem = async (uid, ingredientName) => {
-  if (!uid) {
-    throw new Error("uid required");
-  }
-  const id = encodeURIComponent((ingredientName || "").trim().toLowerCase());
-  const r = ref(db, `${cartPath(uid)}/${id}`);
-  await remove(r);
-};
-
-/* ------------------ Lecturas únicas (opcional) ------------------ */
-
-export const getFavoritesOnce = async (uid) => {
-  if (!uid) {
-    return [];
-  }
-  const r = ref(db, favoritesPath(uid));
-  const s = await get(r);
-  const val = s.val() || {};
-  return Object.keys(val).map((k) => val[k]);
-};
-
-export const getCartOnce = async (uid) => {
-  if (!uid) {
-    return [];
-  }
-  const r = ref(db, cartPath(uid));
-  const s = await get(r);
-  const val = s.val() || {};
-  return Object.keys(val).map((k) => val[k]);
+  return unsub;
 };
